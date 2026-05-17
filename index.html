@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>燃料現金払い計算表</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif;
+    background: #f0f0f0;
+    min-height: 100vh;
+    padding: 16px;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 16px;
+    color: #333;
+  }
+
+  .card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  .fuel-block {
+    margin-bottom: 14px;
+    border: 2px solid #eee;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .fuel-top {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+  }
+
+  .fuel-label {
+    width: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+    flex-shrink: 0;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    padding: 12px 0;
+  }
+
+  .label-kerosene { background: #e8c200; color: #333; text-shadow: none; }
+  .label-diesel   { background: #27ae60; }
+  .label-rg       { background: #e74c3c; }
+  .label-heavy    { background: #2c7be5; }
+
+  .qty-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 8px 10px;
+    background: white;
+  }
+
+  .qty-wrap label {
+    font-size: 11px;
+    color: #aaa;
+    margin-bottom: 2px;
+  }
+
+  .qty-wrap input {
+    width: 100%;
+    height: 52px;
+    font-size: 30px;
+    font-weight: bold;
+    border: none;
+    border-bottom: 2px solid #ddd;
+    padding: 0 4px;
+    text-align: right;
+    -webkit-appearance: none;
+    outline: none;
+    color: #222;
+    background: transparent;
+  }
+
+  .qty-wrap input:focus {
+    border-bottom-color: #4a90e2;
+  }
+
+  .fuel-bottom {
+    display: flex;
+    align-items: center;
+    background: #f9f9f9;
+    padding: 8px 12px;
+    gap: 8px;
+    border-top: 1px solid #eee;
+  }
+
+  .bottom-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .bottom-item label {
+    font-size: 10px;
+    color: #aaa;
+  }
+
+  .unit-input {
+    height: 36px;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 0 8px;
+    text-align: right;
+    -webkit-appearance: none;
+    outline: none;
+    color: #555;
+    background: white;
+    width: 100px;
+  }
+
+  .unit-input:focus {
+    border-color: #4a90e2;
+  }
+
+  .arrow {
+    font-size: 18px;
+    color: #bbb;
+    flex-shrink: 0;
+    margin: 0 4px;
+    align-self: flex-end;
+    padding-bottom: 6px;
+  }
+
+  .amt-display {
+    flex: 1;
+    text-align: right;
+  }
+
+  .amt-display label {
+    font-size: 10px;
+    color: #aaa;
+    display: block;
+  }
+
+  .amount-value {
+    font-size: 22px;
+    font-weight: bold;
+    color: #e74c3c;
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 12px 0;
+  }
+
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 4px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .result-row:last-child {
+    border-bottom: none;
+  }
+
+  .result-label {
+    font-size: 16px;
+    color: #555;
+  }
+
+  .result-value {
+    font-size: 22px;
+    font-weight: bold;
+    color: #e74c3c;
+  }
+
+  .result-row.total {
+    background: #fff8e1;
+    border-radius: 8px;
+    padding: 14px 12px;
+    margin-top: 8px;
+  }
+
+  .result-row.total .result-label {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+  }
+
+  .result-row.total .result-value {
+    font-size: 28px;
+    color: #e74c3c;
+  }
+
+  .tax-label-kerosene {
+    background: #27ae60;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: bold;
+    margin-right: 6px;
+  }
+
+  .reset-btn {
+    width: 100%;
+    height: 52px;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+
+  .reset-btn:active {
+    background: #545b62;
+  }
+
+  .section-title {
+    font-size: 13px;
+    color: #888;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+
+<h1>燃料現金払い計算表</h1>
+
+<!-- 入力カード -->
+<div class="card">
+  <div class="section-title">数量入力</div>
+
+  <!-- 軽油 -->
+  <div class="fuel-block">
+    <div class="fuel-top">
+      <div class="fuel-label label-diesel">軽油</div>
+      <div class="qty-wrap">
+        <label>数量（L）</label>
+        <input type="number" id="qty-diesel" inputmode="decimal" placeholder="0" oninput="calc()">
+      </div>
+    </div>
+    <div class="fuel-bottom">
+      <div class="bottom-item">
+        <label>単価（円）</label>
+        <input type="number" class="unit-input" id="price-diesel" inputmode="decimal" value="134.5" oninput="calc()">
+      </div>
+      <div class="arrow">→</div>
+      <div class="amt-display">
+        <label>金額（円）</label>
+        <div class="amount-value" id="amt-diesel">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RG -->
+  <div class="fuel-block">
+    <div class="fuel-top">
+      <div class="fuel-label label-rg">RG</div>
+      <div class="qty-wrap">
+        <label>数量（L）</label>
+        <input type="number" id="qty-rg" inputmode="decimal" placeholder="0" oninput="calc()">
+      </div>
+    </div>
+    <div class="fuel-bottom">
+      <div class="bottom-item">
+        <label>単価（円）</label>
+        <input type="number" class="unit-input" id="price-rg" inputmode="decimal" value="159.0" oninput="calc()">
+      </div>
+      <div class="arrow">→</div>
+      <div class="amt-display">
+        <label>金額（円）</label>
+        <div class="amount-value" id="amt-rg">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 灯油 -->
+  <div class="fuel-block">
+    <div class="fuel-top">
+      <div class="fuel-label label-kerosene">灯油</div>
+      <div class="qty-wrap">
+        <label>数量（L）</label>
+        <input type="number" id="qty-kerosene" inputmode="decimal" placeholder="0" oninput="calc()">
+      </div>
+    </div>
+    <div class="fuel-bottom">
+      <div class="bottom-item">
+        <label>単価（円）</label>
+        <input type="number" class="unit-input" id="price-kerosene" inputmode="decimal" value="113.6" oninput="calc()">
+      </div>
+      <div class="arrow">→</div>
+      <div class="amt-display">
+        <label>金額（円）</label>
+        <div class="amount-value" id="amt-kerosene">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 重油 -->
+  <div class="fuel-block">
+    <div class="fuel-top">
+      <div class="fuel-label label-heavy">重油</div>
+      <div class="qty-wrap">
+        <label>数量（L）</label>
+        <input type="number" id="qty-heavy" inputmode="decimal" placeholder="0" oninput="calc()">
+      </div>
+    </div>
+    <div class="fuel-bottom">
+      <div class="bottom-item">
+        <label>単価（円）</label>
+        <input type="number" class="unit-input" id="price-heavy" inputmode="decimal" value="94.0" oninput="calc()">
+      </div>
+      <div class="arrow">→</div>
+      <div class="amt-display">
+        <label>金額（円）</label>
+        <div class="amount-value" id="amt-heavy">0</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 集計カード -->
+<div class="card">
+  <div class="section-title">集計</div>
+
+  <div class="result-row">
+    <span class="result-label">10%対象額</span>
+    <span class="result-value" id="taxable">0</span>
+  </div>
+  <div class="result-row">
+    <span class="result-label">消費税（10%）</span>
+    <span class="result-value" id="consumption-tax">0</span>
+  </div>
+  <div class="result-row">
+    <span class="result-label">
+      <span class="tax-label-kerosene">軽油税</span>
+      <span style="font-size:12px;color:#aaa;">（@<span id="diesel-tax-rate">15</span>円/L）</span>
+    </span>
+    <span class="result-value" id="diesel-tax">0</span>
+  </div>
+
+  <div class="result-row total">
+    <span class="result-label">合計</span>
+    <span class="result-value" id="total">0</span>
+  </div>
+</div>
+
+<!-- リセットボタン -->
+<div class="card">
+  <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
+    <span style="font-size:13px;color:#888;">軽油税レート（円/L）</span>
+    <input type="number" id="diesel-tax-rate-input" inputmode="decimal" value="15"
+      style="width:80px;height:36px;font-size:16px;border:2px solid #ddd;border-radius:8px;padding:0 8px;text-align:right;"
+      oninput="document.getElementById('diesel-tax-rate').textContent=this.value;calc()">
+  </div>
+  <button class="reset-btn" onclick="resetAll()">リセット</button>
+</div>
+
+<script>
+function fmt(n) {
+  return Math.round(n).toLocaleString('ja-JP');
+}
+
+function val(id) {
+  return parseFloat(document.getElementById(id).value) || 0;
+}
+
+function calc() {
+  const qDiesel   = val('qty-diesel');
+  const qRg       = val('qty-rg');
+  const qKerosene = val('qty-kerosene');
+  const qHeavy    = val('qty-heavy');
+
+  const pDiesel   = val('price-diesel');
+  const pRg       = val('price-rg');
+  const pKerosene = val('price-kerosene');
+  const pHeavy    = val('price-heavy');
+
+  const aDiesel   = qDiesel   * pDiesel;
+  const aRg       = qRg       * pRg;
+  const aKerosene = qKerosene * pKerosene;
+  const aHeavy    = qHeavy    * pHeavy;
+
+  document.getElementById('amt-diesel').textContent   = fmt(aDiesel);
+  document.getElementById('amt-rg').textContent       = fmt(aRg);
+  document.getElementById('amt-kerosene').textContent = fmt(aKerosene);
+  document.getElementById('amt-heavy').textContent    = fmt(aHeavy);
+
+  const taxable = aDiesel + aRg + aKerosene + aHeavy;
+  const consumptionTax = Math.floor(taxable * 0.1);
+  const dieselTaxRate = val('diesel-tax-rate-input');
+  const dieselTax = Math.round(qDiesel * dieselTaxRate);
+  const total = Math.round(taxable) + consumptionTax + dieselTax;
+
+  document.getElementById('taxable').textContent         = fmt(taxable);
+  document.getElementById('consumption-tax').textContent = fmt(consumptionTax);
+  document.getElementById('diesel-tax').textContent      = fmt(dieselTax);
+  document.getElementById('total').textContent           = fmt(total);
+}
+
+function resetAll() {
+  ['qty-diesel','qty-rg','qty-kerosene','qty-heavy'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  calc();
+}
+
+calc();
+</script>
+</body>
+</html>
